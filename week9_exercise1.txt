@@ -1,0 +1,3 @@
+First create a new namespace 'staging' and start the calculator and caching service in it
+
+kubectl create namespace staging
