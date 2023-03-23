@@ -1,3 +1,16 @@
 First create a new namespace 'staging' and start the calculator and caching service in it
 
 kubectl create namespace staging
+
+Then push calculator and svc to the staging environment
+
+kubectl apply -f hazelcast.yaml -n staging 
+kubectl apply -f calculator.yaml -n staging
+
+and it works
+
+http://localhost:31417/sum?a=4&b=8
+returns 12
+
+trying division with this version...
+
