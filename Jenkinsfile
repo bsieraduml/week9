@@ -33,7 +33,7 @@ podTemplate(yaml: '''
   node(POD_LABEL) {
 
   stage('k8s') {
-    git branch: 'main', url: 'https://github.com/bsieraduml/week9.git'
+    git branch: ${env.CHANGE_BRANCH}, url: 'https://github.com/bsieraduml/week9.git'
     container('centos') {
       stage('rolling update calculator') {
         sh '''
@@ -44,27 +44,7 @@ podTemplate(yaml: '''
           '''
         }
       }
-    }
-
-stage('Build a gradle project') {
-      git branch: 'main', url: 'https://github.com/bsieraduml/week8.git'
-      container('gradle') {
-
-        stage("Acceptance Testing") {
-            //exercise 8 part 1 test via curl
-
-              try {
-                sh '''
-                chmod +x gradlew
-                ./gradlew smokeTest
-                  '''
-              } catch (Exception E) {
-                  echo 'Failure detected'
-              }     
-
-        } // stage code coverage  
-      }
-    }        
+    }       
 
   } // NODE pod label
 } //root
