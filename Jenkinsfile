@@ -33,7 +33,7 @@ podTemplate(yaml: '''
   node(POD_LABEL) {
 
   stage('k8s') {
-    git branch: ${env.CHANGE_BRANCH}, url: 'https://github.com/bsieraduml/week9.git'
+    git branch: env.BRANCH_NAME, url: 'https://github.com/bsieraduml/week9.git'
     container('centos') {
       stage('rolling update calculator') {
         sh '''
