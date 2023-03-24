@@ -39,17 +39,19 @@ podTemplate(yaml: '''
         sh '''
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
         chmod +x ./kubectl
+        
         echo 'week 9 exercise 1 part 2 a - test sum and div with first image'
         ./kubectl apply -f calculator.yaml -n staging
         ./kubectl apply -f hazelcast.yaml -n staging
         echo 'after deployment sleep 30 seconds'
-        test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\&b=2) -eq 12 echo 'sum passes' || echo 'sum fails'
-        test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\&b=2) -eq 5 echo 'div passes' || echo 'div fails'
+        test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\\&b=2) -eq 12 echo 'sum passes' || echo 'sum fails'
+        test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\\\&b=2) -eq 5 echo 'div passes' || echo 'div fails'
+        
         echo 'week 9 exercise 1 part 2 b - test sum and div with second image'
         ./kubectl apply -f calculator2.yaml -n staging
         echo 'after deployment sleep 30 seconds'        
-        test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\&b=2) -eq 12 echo 'sum passes' || echo 'sum fails'
-        test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\&b=2) -eq 5 echo 'div passes' || echo 'div fails'        
+        test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\\&b=2) -eq 12 echo 'sum passes' || echo 'sum fails'
+        test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\\&b=2) -eq 5 echo 'div passes' || echo 'div fails'        
           '''
         }
       }
