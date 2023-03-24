@@ -45,13 +45,15 @@ podTemplate(yaml: '''
         ./kubectl apply -f calculator.yaml -n staging
         ./kubectl apply -f hazelcast.yaml -n staging
         echo 'after deployment sleep 30 seconds'
+        sleep 30
         test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\\&b=2) -eq 12 && echo 'sum passes' || echo 'sum fails'
         test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\\&b=2) -eq 5 && echo 'div passes' || echo 'div fails' 
 
         echo 'week 9 exercise 1 part 2 b - test sum and div with second image'
         ./kubectl delete deployment calculator-deployment -n staging
         ./kubectl apply -f calculator2.yaml -n staging
-        echo 'after deployment sleep 30 seconds'        
+        echo 'after deployment sleep 30 seconds' 
+        sleep 30       
         test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\\&b=2) -eq 12 && echo 'sum passes' || echo 'sum fails'
         test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\\&b=2) -eq 5 && echo 'div passes' || echo 'div fails'        
           '''
