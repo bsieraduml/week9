@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calculator-deployment
+  labels:
+    app: calculator
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: calculator
+  template:
+    metadata:
+      labels:
+        app: calculator
+    spec:
+      containers:
+      - name: calculator
+        image: dlambrig/week8:1.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MC_DEFAULT_CLUSTER
+          value: "docker-desktop"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: calculator-service
+spec:
+  type: NodePort
+  selector:
+    app: calculator
+  ports:
+  - port: 8080
