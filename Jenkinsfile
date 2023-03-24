@@ -3,6 +3,20 @@ podTemplate(yaml: '''
     kind: Pod
     spec:
       containers:
+      - name: cloud-sdk
+        image: google/cloud-sdk
+        command:
+        - sleep
+        args:
+        - 999999
+        volumeMounts:
+        - name: shared-storage
+          mountPath: /mnt
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/week9-lab2-e24f1e7eb5d3.json    
       - name: gradle
         image: gradle:8-jdk8
         command:
@@ -23,6 +37,9 @@ podTemplate(yaml: '''
       - name: shared-storage
         persistentVolumeClaim:
           claimName: jenkins-pv-claim
+      - name: google-cloud-key
+        secret:
+            secretName: sdk-key          
       - name: kaniko-secret
         secret:
             secretName: dockercred
@@ -34,32 +51,42 @@ podTemplate(yaml: '''
 
   stage('k8s') {
     git branch: env.BRANCH_NAME, url: 'https://github.com/bsieraduml/week9.git'
-    container('centos') {
-      stage('rolling update calculator') {
-        sh '''
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x ./kubectl
-        
-        echo 'week 9 exercise 1 part 2 a - test sum and div with first image'
-        ./kubectl delete deployment calculator-deployment -n staging
-        ./kubectl apply -f calculator.yaml -n staging
-        ./kubectl apply -f hazelcast.yaml -n staging
-        echo 'after deployment sleep 30 seconds'
-        sleep 30
-        test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\\&b=2) -eq 12 && echo 'sum passes' || echo 'sum fails'
-        test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\\&b=2) -eq 5 && echo 'div passes' || echo 'div fails' 
 
-        echo 'week 9 exercise 1 part 2 b - test sum and div with second image'
-        ./kubectl delete deployment calculator-deployment -n staging
-        ./kubectl apply -f calculator2.yaml -n staging
-        echo 'after deployment sleep 30 seconds' 
-        sleep 30       
-        test $(curl calculator-service.staging.svc.cluster.local:8080/sum?a=10\\&b=2) -eq 12 && echo 'sum passes' || echo 'sum fails'
-        test $(curl calculator-service.staging.svc.cluster.local:8080/div?a=10\\&b=2) -eq 5 && echo 'div passes' || echo 'div fails'        
-          '''
+    stage('Build a gradle project') {
+      git branch: 'main', url: 'https://github.com/bsieraduml/week8.git'
+      container('gradle') {
+        stage("Smoke Test") {
+              try {
+                sh '''
+                chmod +x gradlew
+                ./gradlew smokeTest
+                  '''
+              } catch (Exception E) {
+                  echo 'Failure detected'
+              }     
+
+        } // stage smoke test 
+      } // gradle
+    } // Build a gradle project 
+
+  stage('Deploying to prod') {
+    container('cloud-sdk') {
+      stage('Deploy to prod from cloud-sdk container') {
+        sh '''
+        echo 'namespaces in the staging environment'
+        kubectl get ns
+        gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
+        gcloud projects list
+        # gcloud config set project week9-lab2
+        # gcloud container clusters get-credentials hello-cluster --region us-west1 --project week9-lab2
+        # echo 'namespaces in the prod environment'
+        # kubectl get ns
+'''
         }
       }
-    }       
+    }
+
+  }// k8s       
 
   } // NODE pod label
 } //root
