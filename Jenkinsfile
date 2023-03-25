@@ -92,8 +92,9 @@ podTemplate(yaml: '''
           kubectl get ns
 
           echo 'apply calculator deployment to prod'
-          kubectl apply -f ./hazelcast.yaml
-          kubectl apply -f ./calculator2.yaml
+          kubectl create namespace prod
+          kubectl apply -f ./hazelcast.yaml -n prod
+          kubectl apply -f ./calculator2.yaml -n prod
           '''
         }
       }
