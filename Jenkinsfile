@@ -16,7 +16,7 @@ podTemplate(yaml: '''
           mountPath: /var/secrets/google
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/secrets/google/week9-lab2-e24f1e7eb5d3.json    
+          value: /var/secrets/google/umls23-381500-911c6262500f.json    
       - name: gradle
         image: gradle:8-jdk8
         command:
