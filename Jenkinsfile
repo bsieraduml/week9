@@ -3,20 +3,6 @@ podTemplate(yaml: '''
     kind: Pod
     spec:
       containers:
-      - name: cloud-sdk
-        image: google/cloud-sdk
-        command:
-        - sleep
-        args:
-        - 999999
-        volumeMounts:
-        - name: shared-storage
-          mountPath: /mnt
-        - name: google-cloud-key
-          mountPath: /var/secrets/google
-        env:
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/secrets/google/umls23-381500-911c6262500f.json    
       - name: gradle
         image: gradle:8-jdk8
         command:
@@ -37,9 +23,6 @@ podTemplate(yaml: '''
       - name: shared-storage
         persistentVolumeClaim:
           claimName: jenkins-pv-claim
-      - name: google-cloud-key
-        secret:
-            secretName: sdk-key          
       - name: kaniko-secret
         secret:
             secretName: dockercred
@@ -49,60 +32,19 @@ podTemplate(yaml: '''
 ''') {
   node(POD_LABEL) {
 
-  boolean testPassed = true
   stage('k8s') {
-    stage('Build a gradle project') {
-      git branch: 'main', url: 'https://github.com/bsieraduml/week8.git'
-      container('gradle') {
-        stage("Smoke Test") {
-              try {
-                sh '''
-                chmod +x gradlew
-                ./gradlew smokeTest -Dcalculator.url=http://calculator-service.staging.svc.cluster.local:8080
-                  '''
-              } catch (Exception E) {
-                  echo 'Failure detected'
-                  testPassed = false
-              }     
-
-        } // stage smoke test 
-      } // gradle
-    } // Build a gradle project 
-
-  stage('Deploying to prod') {
-    if (testPassed)
-    {
-      container('cloud-sdk') {
-        git branch: 'feaEx1', url: 'https://github.com/bsieraduml/week9.git'
-        stage('Deploy to prod from cloud-sdk container') {
-          sh '''
-          echo 'test passed pushing to production'
-
-          echo 'pwd'
-          pwd
-          echo 'ls -lart'
-          ls -lart
-
-          echo 'namespaces in staging'
-          kubectl get ns
-          gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
-          gcloud container clusters get-credentials hello-cluster --region us-west1 --project umls23-381500
-          
-          echo 'namespaces in prod'
-          kubectl get ns
-
-          echo 'apply calculator deployment to prod'
-          kubectl apply -f ./hazelcast.yaml -n prod
-          kubectl apply -f ./calculator2.yaml -n prod
+    git branch: env.BRANCH_NAME, url: 'https://github.com/bsieraduml/week9.git'
+    container('centos') {
+      stage('rolling update calculator') {
+        sh '''
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        ./kubectl apply -f calculator.yaml -n staging
+        ./kubectl apply -f hazelcast.yaml -n staging
           '''
         }
       }
-    } else {
-      echo 'test failed not deploying to production'
-    }
-    } // deploying to prod
-
-  }// k8s       
+    }       
 
   } // NODE pod label
 } //root
