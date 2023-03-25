@@ -79,8 +79,8 @@ podTemplate(yaml: '''
           echo 'test passed pushing to production'
           gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
           gcloud container clusters get-credentials hello-cluster --region us-west1 --project umls23-381500
-          kubectl deploy -f hazelcast.yaml
-          kubectl deploy -f calculator2.yaml
+          kubectl apply -f hazelcast.yaml
+          kubectl apply -f calculator2.yaml
           '''
         }
       }
