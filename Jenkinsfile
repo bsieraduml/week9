@@ -58,8 +58,7 @@ podTemplate(yaml: '''
               try {
                 sh '''
                 chmod +x gradlew
-                echo 'intentional smoke test failure to ensure prod logic'
-                ./gradlew smokeTest
+                ./gradlew smokeTest -Dcalculator.url=http://calculator-service.staging.svc.cluster.local:8080
                   '''
               } catch (Exception E) {
                   echo 'Failure detected'
@@ -74,16 +73,14 @@ podTemplate(yaml: '''
     if (testPassed)
     {
       container('cloud-sdk') {
+        git branch: 'main', url: 'https://github.com/bsieraduml/week9.git'
         stage('Deploy to prod from cloud-sdk container') {
           sh '''
-          echo 'namespaces in the staging environment'
-          kubectl get ns
+          echo 'test passed pushing to production'
           gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
-          gcloud projects list
-          # gcloud config set project week9-lab2
-          # gcloud container clusters get-credentials hello-cluster --region us-west1 --project week9-lab2
-          # echo 'namespaces in the prod environment'
-          # kubectl get ns
+          gcloud container clusters get-credentials hello-cluster --region us-west1 --project umls23-381500
+          kubectl deploy -f hazelcast.yaml
+          kubectl deploy -f calculator2.yaml
           '''
         }
       }
