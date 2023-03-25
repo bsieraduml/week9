@@ -49,9 +49,8 @@ podTemplate(yaml: '''
 ''') {
   node(POD_LABEL) {
 
+  boolean testPassed = true
   stage('k8s') {
-    git branch: env.BRANCH_NAME, url: 'https://github.com/bsieraduml/week9.git'
-
     stage('Build a gradle project') {
       git branch: 'main', url: 'https://github.com/bsieraduml/week8.git'
       container('gradle') {
@@ -59,10 +58,12 @@ podTemplate(yaml: '''
               try {
                 sh '''
                 chmod +x gradlew
+                echo 'intentional smoke test failure to ensure prod logic'
                 ./gradlew smokeTest
                   '''
               } catch (Exception E) {
                   echo 'Failure detected'
+                  testPassed = false
               }     
 
         } // stage smoke test 
@@ -70,21 +71,26 @@ podTemplate(yaml: '''
     } // Build a gradle project 
 
   stage('Deploying to prod') {
-    container('cloud-sdk') {
-      stage('Deploy to prod from cloud-sdk container') {
-        sh '''
-        echo 'namespaces in the staging environment'
-        kubectl get ns
-        gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
-        gcloud projects list
-        # gcloud config set project week9-lab2
-        # gcloud container clusters get-credentials hello-cluster --region us-west1 --project week9-lab2
-        # echo 'namespaces in the prod environment'
-        # kubectl get ns
-'''
+    if (testPassed)
+    {
+      container('cloud-sdk') {
+        stage('Deploy to prod from cloud-sdk container') {
+          sh '''
+          echo 'namespaces in the staging environment'
+          kubectl get ns
+          gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
+          gcloud projects list
+          # gcloud config set project week9-lab2
+          # gcloud container clusters get-credentials hello-cluster --region us-west1 --project week9-lab2
+          # echo 'namespaces in the prod environment'
+          # kubectl get ns
+          '''
         }
       }
+    } else {
+      echo 'test failed not deploying to production'
     }
+    } // deploying to prod
 
   }// k8s       
 
