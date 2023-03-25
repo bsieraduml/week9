@@ -82,7 +82,7 @@ podTemplate(yaml: '''
           pwd
           echo 'ls -lart'
           ls -lart
-          
+
           echo 'namespaces in staging'
           kubectl get ns
           gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
@@ -90,8 +90,10 @@ podTemplate(yaml: '''
           
           echo 'namespaces in prod'
           kubectl get ns
-          # kubectl apply -f hazelcast.yaml
-          # kubectl apply -f calculator2.yaml
+
+          echo 'apply calculator deployment to prod'
+          kubectl apply -f ./hazelcast.yaml
+          kubectl apply -f ./calculator2.yaml
           '''
         }
       }
