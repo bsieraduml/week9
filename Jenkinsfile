@@ -77,10 +77,21 @@ podTemplate(yaml: '''
         stage('Deploy to prod from cloud-sdk container') {
           sh '''
           echo 'test passed pushing to production'
+
+          echo 'pwd'
+          pwd
+          echo 'ls -lart'
+          ls -lart
+          
+          echo 'namespaces in staging'
+          kubectl get ns
           gcloud auth login --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
           gcloud container clusters get-credentials hello-cluster --region us-west1 --project umls23-381500
-          kubectl apply -f hazelcast.yaml
-          kubectl apply -f calculator2.yaml
+          
+          echo 'namespaces in prod'
+          kubectl get ns
+          # kubectl apply -f hazelcast.yaml
+          # kubectl apply -f calculator2.yaml
           '''
         }
       }
