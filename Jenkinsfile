@@ -73,7 +73,7 @@ podTemplate(yaml: '''
     if (testPassed)
     {
       container('cloud-sdk') {
-        git branch: 'main', url: 'https://github.com/bsieraduml/week9.git'
+        git branch: 'feaEx1', url: 'https://github.com/bsieraduml/week9.git'
         stage('Deploy to prod from cloud-sdk container') {
           sh '''
           echo 'test passed pushing to production'
